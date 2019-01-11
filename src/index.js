@@ -48,17 +48,26 @@ let vm = new Vue({
       }
     },
     popNotice() {
-      if (window.Notification) {
-        if (Notification.permission == 'granted') {
-          const { title, detail } = this.notifyConfig
-          const notification = new Notification(title, detail)
-          notification.addEventListener('click', () => {
-            window.focus()
-          })
-        }
-      } else {
-        alert('瀏覽器不支援!')
+      if (!('Notification' in window)) {
+        alert('這個瀏覽器不支援 Notification')
+      } else if (Notification.permission === 'granted') {
+        this.popNoticeCode()
+        console.log('1')
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission(function(permission) {
+          if (permission === 'granted') {
+            this.popNoticeCode()
+            console.log('2')
+          }
+        })
       }
+    },
+    popNoticeCode() {
+      const { title, detail } = this.notifyConfig
+      const notification = new Notification(title, detail)
+      notification.addEventListener('click', () => {
+        window.focus()
+      })
     }
   },
   computed: {
@@ -75,5 +84,12 @@ let vm = new Vue({
         return this.time.totalTime
       }
     }
+  },
+  mounted() {
+    Notification.requestPermission(function(status) {
+      if (Notification.permission !== status) {
+        Notification.permission = status
+      }
+    })
   }
 })
